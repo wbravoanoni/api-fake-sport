@@ -3,3 +3,14 @@ Iniciar node
 npm init -y
 
 instalar express
+
+Reacargar automaticamente
+> npm install -g nodemon
+> nodemon server.js
+
+
+Variables de entorno
+> npm install dotenv
+
+Instalar postgress
+> npm install pg
