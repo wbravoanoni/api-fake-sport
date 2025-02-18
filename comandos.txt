@@ -1,0 +1,5 @@
+Iniciar node
+
+npm init -y
+
+instalar express
