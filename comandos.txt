@@ -14,3 +14,19 @@ Variables de entorno
 
 Instalar postgress
 > npm install pg
+
+
+Resumen de Todas las dependencias
+
+npm install express pg cors jsonwebtoken dotenv supertest
+
+npm install -g nodemon
+
+
+express: Framework para manejar las rutas y peticiones.
+pg: Cliente de PostgreSQL para conectarse a la base de datos.
+cors: Permite solicitudes de diferentes dominios (CORS).
+jsonwebtoken: Para la autenticación con JWT.
+dotenv: Para gestionar variables de entorno.
+supertest: Para realizar pruebas a las rutas de la API REST.
+
