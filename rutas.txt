@@ -28,8 +28,7 @@ Metodo GET
 http://localhost:3000/api/usuarios/
 
 Headers:
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiY29ycmVvIjoiYWRtaW5pc3RyYWRvckBjb3Jlby5jbCIsImlhdCI6MTc0MDE1MzAzNywiZXhwIjoxNzQwMTU2NjM3fQ.uDj_-X_UCbiL42XzjNBSbp-B84fGZ0eJiYXcEZDKkNU
-
+Authorization: Bearerx TOKEN
 
 // Agregar categorias
 
@@ -47,7 +46,7 @@ Metodo: GET
 
 http://localhost:3000/api/categorias
 
-Authorization Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiY29ycmVvIjoiYWRtaW5pc3RyYWRvckBjb3Jlby5jbCIsImlhdCI6MTc0MDE1MzY3MCwiZXhwIjoxNzQwMTU3MjcwfQ.CLJ5JY4FpHLIg286770k8-kNxZdEWc1ruhTVoKHnq2c
+Authorization Bearerx TOKEN
 
 //Editar categoria
 
