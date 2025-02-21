@@ -1,0 +1,31 @@
+// Agregar Usuario
+
+Metodo POST
+
+http://localhost:3000/api/usuarios/registrar
+
+{
+  "nombre":"adminitrador",
+  "correo":"administrador@coreo.cl",
+  "contrasena":"123456"
+}
+
+//Comprobar el token
+
+Metodo POST
+
+http://localhost:3000/api/usuarios/login
+
+{
+  "correo":"administrador@coreo.cl",
+  "contrasena":"123456"
+}
+
+// Listar usuarios protegidos por token
+
+Metodo GET
+
+http://localhost:3000/api/usuarios/
+
+Headers:
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiY29ycmVvIjoiYWRtaW5pc3RyYWRvckBjb3Jlby5jbCIsImlhdCI6MTc0MDE1MTE5MSwiZXhwIjoxNzQwMTU0NzkxfQ.XcpnbS1NcCxB8e9_3Dw6qQ_jwwe7xbjYXHqq5kun04M
