@@ -29,3 +29,46 @@ http://localhost:3000/api/usuarios/
 
 Headers:
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiY29ycmVvIjoiYWRtaW5pc3RyYWRvckBjb3Jlby5jbCIsImlhdCI6MTc0MDE1MzAzNywiZXhwIjoxNzQwMTU2NjM3fQ.uDj_-X_UCbiL42XzjNBSbp-B84fGZ0eJiYXcEZDKkNU
+
+
+// Agregar categorias
+
+Metodo: POST
+
+http://localhost:3000/api/categorias
+
+{
+  "nombre": "pruebanueva"
+}
+
+// Listar categorias
+
+Metodo: GET
+
+http://localhost:3000/api/categorias
+
+Authorization Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiY29ycmVvIjoiYWRtaW5pc3RyYWRvckBjb3Jlby5jbCIsImlhdCI6MTc0MDE1MzY3MCwiZXhwIjoxNzQwMTU3MjcwfQ.CLJ5JY4FpHLIg286770k8-kNxZdEWc1ruhTVoKHnq2c
+
+//Editar categoria
+
+Metodo: PUT
+
+http://localhost:3000/api/categorias/24
+
+{
+  "nombre": "pruebanueva2"
+}
+
+
+//Modificar estado de una categorias
+
+Metodo: PUT
+
+http://localhost:3000/api/categorias/11/toggle
+
+
+//Eliminar una categoria
+
+Metodo: DELETE
+
+http://localhost:3000/api/categorias/24

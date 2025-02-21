@@ -2,8 +2,16 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db'); 
 
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const verificarToken = require('../middleware/auth');
 
-router.get('/categorias', async (req, res) => {
+
+// Lista de categorias (PROTEGIDO)
+router.get('/categorias', verificarToken, async (req, res) => {
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden LISTAR las categorias' });
+    }
     try {
         const result = await pool.query('SELECT * FROM categorias'); 
         res.json(result.rows);
@@ -13,7 +21,12 @@ router.get('/categorias', async (req, res) => {
     }
 });
 
-router.get('/categorias/:id', async (req, res) => {
+// ver categorias (PROTEGIDO)
+router.get('/categorias/:id', verificarToken, async (req, res) => {
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden VER esta categorias' });
+    }
+
     const { id } = req.params;
     try {
         const result = await pool.query('SELECT * FROM categorias WHERE id = $1', [id]);
@@ -27,8 +40,13 @@ router.get('/categorias/:id', async (req, res) => {
     }
 });
 
-//Agregar nueva categoria
-router.post('/categorias', async (req, res) => {
+//Agregar nueva categoria (PROTEGIDO)
+router.post('/categorias', verificarToken, async (req, res) => {
+
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden AGREGAR categorias' });
+    }
+
     const { nombre } = req.body;
     if (!nombre) {
         return res.status(400).json({ message: 'El nombre es obligatorio' });
@@ -42,8 +60,13 @@ router.post('/categorias', async (req, res) => {
     }
 });
 
-//Editar una categoria
-router.put('/categorias/:id', async (req, res) => {
+//Editar una categoria (PROTEGIDO)
+router.put('/categorias/:id', verificarToken, async (req, res) => {
+
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden EDITAR las categorias' });
+    }
+
     const { id } = req.params;
     const { nombre } = req.body;
     if (!nombre) {
@@ -61,8 +84,13 @@ router.put('/categorias/:id', async (req, res) => {
     }
 });
 
-//Activar/Desactivar las categorias
-router.put('/categorias/:id/toggle', async (req, res) => {
+//Activar/Desactivar las categorias (PROTEGIDO)
+router.put('/categorias/:id/toggle', verificarToken, async (req, res) => {
+
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden ACTIVAR/DESACTIVAR las categorias' });
+    }
+
     const { id } = req.params;
 
     try {
@@ -88,8 +116,13 @@ router.put('/categorias/:id/toggle', async (req, res) => {
     }
 });
 
-//Eliminar categorias
-router.delete('/categorias/:id', async (req, res) => {
+//Eliminar categorias (PROTEGIDO)
+router.delete('/categorias/:id', verificarToken,async (req, res) => {
+
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden ELIMINAR categorias' });
+    }
+
     const { id } = req.params;
     try {
         const result = await pool.query('DELETE FROM categorias WHERE id = $1 RETURNING *', [id]);
