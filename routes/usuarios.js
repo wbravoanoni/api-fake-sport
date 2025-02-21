@@ -75,8 +75,12 @@ router.post('/usuarios/login', async (req, res) => {
 
 // Lista de usuarios (PROTEGIDO)
 router.get('/usuarios', verificarToken, async (req, res) => {
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden ver los usuarios' });
+    }
+
     try {
-        const result = await pool.query('SELECT id, nombre, correo FROM usuarios');
+        const result = await pool.query('SELECT id, nombre, correo, tipo FROM usuarios');
         res.json(result.rows);
     } catch (error) {
         console.error('Error al obtener usuarios:', error);
