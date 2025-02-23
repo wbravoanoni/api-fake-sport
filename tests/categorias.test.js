@@ -4,8 +4,8 @@ const app = require('../server');
 describe('************* Pruebas de la API de Categorías *************', () => {
     
     let categoriaId;
-    let tokenAdmin; // Token de administrador
-    let tokenUsuario; // Token de usuario normal
+    let tokenAdmin;
+    let tokenUsuario;
 
     // Antes de correr los tests, hacer login y obtener los tokens
     beforeAll(async () => {
