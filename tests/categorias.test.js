@@ -4,24 +4,32 @@ const app = require('../server');
 describe('************* Pruebas de la API de Categorías *************', () => {
     
     let categoriaId;
-    let token; //Guaradar el token
+    let tokenAdmin; // Token de administrador
+    let tokenUsuario; // Token de usuario normal
 
-
-    // Antes de correr los tests, hacer login y obtener el token
+    // Antes de correr los tests, hacer login y obtener los tokens
     beforeAll(async () => {
-        const res = await request(app)
-            .post('/api/usuarios/login') // Ruta de login
+        // Login como Administrador (tipo = 1)
+        const resAdmin = await request(app)
+            .post('/api/usuarios/login')
             .send({ correo: 'administrador@coreo.cl', contrasena: '123456' });
 
-        token = res.body.token; // iMPROTANTE token
+        tokenAdmin = resAdmin.body.token;
+
+        // Login como Usuario Normal (tipo = 2)
+        const resUsuario = await request(app)
+            .post('/api/usuarios/login')
+            .send({ correo: 'usuario@coreo.cl', contrasena: '123456' });
+
+        tokenUsuario = resUsuario.body.token;
     });
-    
-    //Prueba 1 - Crear una nueva categoría (PROTEGIDAS)
-    test('Metodo: POST - Ruta: /api/categorias - Debe crear una nueva categoría', async () => {
+
+    //Prueba 1 - Crear una nueva categoría (Solo Admin)
+    test('POST /api/categorias - Debe crear una nueva categoría (ADMIN)', async () => {
         const res = await request(app)
             .post('/api/categorias')
             .send({ nombre: 'Test Categoría' })
-            .set('Authorization', `Bearer ${token}`)
+            .set('Authorization', `Bearer ${tokenAdmin}`)
             .set('Content-Type', 'application/json');
 
         expect(res.statusCode).toBe(201);
@@ -31,81 +39,123 @@ describe('************* Pruebas de la API de Categorías *************', () => {
         categoriaId = res.body.id;
     });
 
-    // Prueba 2 - Obtener todos las categorias (PROTEGIDAS)
-    test('Metodo: GET - Ruta: /api/categorias - Debe retornar una lista de categorías', async () => {
+    test('POST /api/categorias - Debe retornar 403 si un usuario normal intenta crear una categoría', async () => {
+        const res = await request(app)
+            .post('/api/categorias')
+            .send({ nombre: 'Categoría Bloqueada' })
+            .set('Authorization', `Bearer ${tokenUsuario}`)
+            .set('Content-Type', 'application/json');
+
+        expect(res.statusCode).toBe(403);
+        expect(res.body.message).toBe('Acceso denegado: Solo los administradores pueden AGREGAR categorias');
+    });
+
+    //Prueba2 - Obtener todas las categorías (Solo Admin)
+    test('GET /api/categorias - Debe retornar lista de categorías (ADMIN)', async () => {
         const res = await request(app)
             .get('/api/categorias')
-            .set('Authorization', `Bearer ${token}`);
+            .set('Authorization', `Bearer ${tokenAdmin}`);
 
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
     });
 
-    // Prueba 3 - Obtener una categoria por id (PROTEGIDAS)
-    test('Metodo: GET - Ruta: /api/categorias/:id - Debe retornar una categoría existente', async () => {
+    test('GET /api/categorias - Debe retornar 403 si un usuario normal intenta listar categorías', async () => {
+        const res = await request(app)
+            .get('/api/categorias')
+            .set('Authorization', `Bearer ${tokenUsuario}`);
+
+        expect(res.statusCode).toBe(403);
+        expect(res.body.message).toBe('Acceso denegado: Solo los administradores pueden LISTAR las categorias');
+    });
+
+    // Prueba 3 - Obtener una categoría por ID (Solo Admin)
+    test('GET /api/categorias/:id - Debe retornar una categoría existente (ADMIN)', async () => {
         const res = await request(app)
             .get(`/api/categorias/${categoriaId}`)
-            .set('Authorization', `Bearer ${token}`);
+            .set('Authorization', `Bearer ${tokenAdmin}`);
 
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('id', categoriaId);
     });
 
-    test('Metodo: GET - Ruta: /api/categorias/:id - Debe retornar 404 si la categoría no existe', async () => {
+    test('GET /api/categorias/:id - Debe retornar 403 si un usuario normal intenta ver una categoría', async () => {
         const res = await request(app)
-            .get('/api/categorias/9999')
-            .set('Authorization', `Bearer ${token}`);
+            .get(`/api/categorias/${categoriaId}`)
+            .set('Authorization', `Bearer ${tokenUsuario}`);
 
-        expect(res.statusCode).toBe(404);
+        expect(res.statusCode).toBe(403);
+        expect(res.body.message).toBe('Acceso denegado: Solo los administradores pueden VER esta categorias');
     });
 
-    // Prueba 4 - Actualizar una categoria (PROTEGIDAS)
-    test('Metodo: PUT - Ruta: /api/categorias/:id - Debe actualizar el nombre de una categoría', async () => {
+    // Prueba 4 - Actualizar una categoría (Solo Admin)
+    test('PUT /api/categorias/:id - Debe actualizar una categoría (ADMIN)', async () => {
         const res = await request(app)
             .put(`/api/categorias/${categoriaId}`)
             .send({ nombre: 'Categoría Actualizada' })
-            .set('Authorization', `Bearer ${token}`)
+            .set('Authorization', `Bearer ${tokenAdmin}`)
             .set('Content-Type', 'application/json');
 
         expect(res.statusCode).toBe(200);
         expect(res.body.categoria.nombre).toBe('Categoría Actualizada');
     });
 
-    // Prueba 5 - Activar/Desactivar una categoría (PROTEGIDAS)
-    test('Metodo: PUT - Ruta: /api/categorias/:id/toggle - Debe cambiar el estado de activo', async () => {
+    test('PUT /api/categorias/:id - Debe retornar 403 si un usuario normal intenta actualizar una categoría', async () => {
+        const res = await request(app)
+            .put(`/api/categorias/${categoriaId}`)
+            .send({ nombre: 'Intento Fallido' })
+            .set('Authorization', `Bearer ${tokenUsuario}`)
+            .set('Content-Type', 'application/json');
+
+        expect(res.statusCode).toBe(403);
+        expect(res.body.message).toBe('Acceso denegado: Solo los administradores pueden EDITAR las categorias');
+    });
+
+    // Prueba 5 - Activar/Desactivar una categoría (Solo Admin)
+    test('PUT /api/categorias/:id/toggle - Debe cambiar el estado de activo (ADMIN)', async () => {
         const res1 = await request(app)
             .put(`/api/categorias/${categoriaId}/toggle`)
-            .set('Authorization', `Bearer ${token}`);
+            .set('Authorization', `Bearer ${tokenAdmin}`);
 
         expect(res1.statusCode).toBe(200);
         expect(res1.body.categoria).toHaveProperty('activo');
 
         const estadoInicial = res1.body.categoria.activo;
 
-        // Revertir estado de la categoría (PROTEGIDAS)
+        // Revertir estado
         const res2 = await request(app)
             .put(`/api/categorias/${categoriaId}/toggle`)
-            .set('Authorization', `Bearer ${token}`);
+            .set('Authorization', `Bearer ${tokenAdmin}`);
 
         expect(res2.statusCode).toBe(200);
         expect(res2.body.categoria.activo).toBe(!estadoInicial);
     });
 
-    // Prueba 6 - Eliminar una categoria (PROTEGIDAS)
-    test('Metodo: DELETE - Ruta: /api/categorias/:id - Debe eliminar una categoría', async () => {
+    test('PUT /api/categorias/:id/toggle - Debe retornar 403 si un usuario normal intenta activar/desactivar una categoría', async () => {
+        const res = await request(app)
+            .put(`/api/categorias/${categoriaId}/toggle`)
+            .set('Authorization', `Bearer ${tokenUsuario}`);
+
+        expect(res.statusCode).toBe(403);
+        expect(res.body.message).toBe('Acceso denegado: Solo los administradores pueden ACTIVAR/DESACTIVAR las categorias');
+    });
+
+    // Prueba 6 - Eliminar una categoría (Solo Admin)
+    test('DELETE /api/categorias/:id - Debe eliminar una categoría (ADMIN)', async () => {
         const res = await request(app)
             .delete(`/api/categorias/${categoriaId}`)
-            .set('Authorization', `Bearer ${token}`);
+            .set('Authorization', `Bearer ${tokenAdmin}`);
 
         expect(res.statusCode).toBe(200);
     });
 
-    test('Metodo: DELETE - Ruta: /api/categorias/:id - Debe retornar 404 si la categoría ya fue eliminada', async () => {
+    test('DELETE /api/categorias/:id - Debe retornar 403 si un usuario normal intenta eliminar una categoría', async () => {
         const res = await request(app)
             .delete(`/api/categorias/${categoriaId}`)
-            .set('Authorization', `Bearer ${token}`);
+            .set('Authorization', `Bearer ${tokenUsuario}`);
 
-        expect(res.statusCode).toBe(404);
+        expect(res.statusCode).toBe(403);
+        expect(res.body.message).toBe('Acceso denegado: Solo los administradores pueden ELIMINAR categorias');
     });
 
 });
