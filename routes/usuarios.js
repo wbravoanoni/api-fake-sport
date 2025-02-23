@@ -16,12 +16,11 @@ router.post('/usuarios/registrar', async (req, res) => {
     }
 
     try {
-        // Encriptar la contraseña
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(contrasena, salt);
 
         const result = await pool.query(
-            'INSERT INTO usuarios (nombre, correo, contrasena) VALUES ($1, $2, $3) RETURNING *',
+            'INSERT INTO usuarios (nombre, correo, contrasena, activo, tipo) VALUES ($1, $2, $3, true, 2) RETURNING *',
             [nombre, correo, hashedPassword]
         );
 
@@ -49,14 +48,16 @@ router.post('/usuarios/login', async (req, res) => {
 
         const usuario = result.rows[0];
 
-        // Comparar contraseñas
+        if (!usuario.activo) { // ✅ Corregido: Se usa `usuario` en lugar de `req.user`
+            return res.status(403).json({ message: 'Acceso denegado: Usuario inactivo' });
+        }
+
         const comparaContrasenas = await bcrypt.compare(contrasena, usuario.contrasena);
         if (!comparaContrasenas) {
             return res.status(401).json({ message: 'Contraseña incorrecta' });
         }
 
-        // Generar Token JWT
-        const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ id: usuario.id, correo: usuario.correo, tipo: usuario.tipo, activo: usuario.activo }, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         res.json({
             message: 'Inicio de sesión exitoso',
@@ -64,7 +65,9 @@ router.post('/usuarios/login', async (req, res) => {
             usuario: {
                 id: usuario.id,
                 nombre: usuario.nombre,
-                correo: usuario.correo
+                correo: usuario.correo,
+                tipo: usuario.tipo,
+                activo: usuario.activo
             }
         });
     } catch (error) {
@@ -75,15 +78,113 @@ router.post('/usuarios/login', async (req, res) => {
 
 // Lista de usuarios (PROTEGIDO)
 router.get('/usuarios', verificarToken, async (req, res) => {
+
+    if (!req.user.activo) {
+        return res.status(403).json({ message: 'Acceso denegado: Usuario inactivo' });
+    }
+
     if (req.user.tipo !== 1) {
         return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden ver los usuarios' });
     }
 
     try {
-        const result = await pool.query('SELECT id, nombre, correo, tipo FROM usuarios');
+        const result = await pool.query('SELECT id, nombre, correo, tipo, activo FROM usuarios');
         res.json(result.rows);
     } catch (error) {
         console.error('Error al obtener usuarios:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
+// Modificar un usuario (PROTEGIDO)
+router.put('/usuarios/:id', verificarToken, async (req, res) => {
+
+    if (!req.user.activo) {
+        return res.status(403).json({ message: 'Acceso denegado: Usuario inactivo' });
+    }
+
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden modificar usuarios' });
+    }
+
+    const { id } = req.params;
+    const { nombre, correo, tipo } = req.body;
+
+    try {
+        const result = await pool.query(
+            'UPDATE usuarios SET nombre = $1, correo = $2, tipo = $3 WHERE id = $4 RETURNING *',
+            [nombre, correo, tipo, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        res.json({ message: 'Usuario actualizado correctamente', usuario: result.rows[0] });
+    } catch (error) {
+        console.error('Error al actualizar usuario:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
+// Activar/Desactivar usuario (PROTEGIDO)
+router.put('/usuarios/:id/toggle', verificarToken, async (req, res) => {
+
+    if (!req.user.activo) {
+        return res.status(403).json({ message: 'Acceso denegado: Usuario inactivo' });
+    }
+
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden activar/desactivar usuarios' });
+    }
+
+    const { id } = req.params;
+
+    try {
+        const result = await pool.query('SELECT activo FROM usuarios WHERE id = $1', [id]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+
+        const nuevoEstado = !result.rows[0].activo;
+        const updateResult = await pool.query(
+            'UPDATE usuarios SET activo = $1 WHERE id = $2 RETURNING *',
+            [nuevoEstado, id]
+        );
+
+        res.json({
+            message: `Usuario ${nuevoEstado ? 'activado' : 'desactivado'} correctamente`,
+            usuario: updateResult.rows[0]
+        });
+
+    } catch (error) {
+        console.error('Error al actualizar estado del usuario:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
+// 
+// Eliminar usuario (PROTEGIDO)
+router.delete('/usuarios/:id', verificarToken, async (req, res) => {
+    
+    if (!req.user.activo) {
+        return res.status(403).json({ message: 'Acceso denegado: Usuario inactivo' });
+    }
+
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden eliminar usuarios' });
+    }
+
+    const { id } = req.params;
+    try {
+        const result = await pool.query('DELETE FROM usuarios WHERE id = $1 RETURNING *', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Usuario no encontrado' });
+        }
+        res.json({ message: 'Usuario eliminado correctamente' });
+    } catch (error) {
+        console.error('Error al eliminar usuario:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
