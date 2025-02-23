@@ -71,3 +71,13 @@ http://localhost:3000/api/categorias/11/toggle
 Metodo: DELETE
 
 http://localhost:3000/api/categorias/24
+
+
+ver todos los productos
+metodo GET
+http://localhost:3000/api/productos
+
+
+metodo GET
+//Ver productos por categorias
+http://localhost:3000/api/productos/categoria/Hombre
