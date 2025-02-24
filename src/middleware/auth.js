@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const pool = require('../db'); // Para acceder a la base de datos
+const pool = require('../../db'); // Para acceder a la base de datos
 
 const verificarToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
