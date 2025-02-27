@@ -102,9 +102,19 @@ https://api-fake-sport.onrender.com/api/productos
 
 ----
 
+### Ver un productos
+#### Método GET
+
+https://api-fake-sport.onrender.com/api/productos
+
+----
+
 ### Ver productos por categorias
 #### Método GET
 
 https://api-fake-sport.onrender.com/api/productos/categoria/Hombre
 
 ----
+
+
+
