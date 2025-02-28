@@ -137,5 +137,48 @@ router.delete('/categorias/:id', verificarToken,async (req, res) => {
 });
 
 
+// Listado de categorias
+
+// Lista de categorias con paginación (SOLO ADMIN)
+router.get('/categorias', verificarToken, async (req, res) => {
+    if (!req.user.activo) {
+        return res.status(403).json({ message: 'Acceso denegado: Categoria inactivo' });
+    }
+
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden ver las categorias' });
+    }
+    
+    let { page = 1, limit = 10 } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
+    
+    if (isNaN(page) || page < 1) page = 1;
+    if (isNaN(limit) || limit < 1) limit = 10;
+
+    const offset = (page - 1) * limit;
+
+    try {
+        const result = await pool.query(
+            'SELECT * FROM categorias ORDER BY id LIMIT $1 OFFSET $2',
+            [limit, offset]
+        );
+
+        const totalUsuarios = await pool.query('SELECT COUNT(*) FROM categorias');
+        const totalPaginas = Math.ceil(totalUsuarios.rows[0].count / limit);
+
+        res.json({
+            page,
+            totalPaginas,
+            totalUsuarios: totalUsuarios.rows[0].count,
+            usuarios: result.rows,
+        });
+    } catch (error) {
+        console.error('Error al obtener categorias:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
+
 
 module.exports = router;
