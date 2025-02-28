@@ -146,39 +146,40 @@ router.get('/categorias', verificarToken, async (req, res) => {
     if (req.user.tipo !== 1) {
         return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden ver las categorías' });
     }
+    
+    let { page = 1, limit = 10 } = req.query;
 
-    let { page, limit } = req.query;
+    // Convertir a enteros y validar valores correctos
+    page = parseInt(page, 10);
+    limit = parseInt(limit, 10);
 
-    page = parseInt(page, 10) || 1;
-    limit = parseInt(limit, 10) || 10;
-
-    if (page < 1) page = 1;
-    if (limit < 1) limit = 10;
+    if (isNaN(page) || page < 1) page = 1;
+    if (isNaN(limit) || limit < 1) limit = 10;
 
     const offset = (page - 1) * limit;
 
     try {
-        
+        // Consulta SQL corregida
         const result = await pool.query(
-            'SELECT * FROM categorias ORDER BY id LIMIT $1 OFFSET $2',
+            'SELECT id, nombre, fecha_creacion, fecha_actualizacion, activo FROM categorias ORDER BY id LIMIT $1 OFFSET $2',
             [limit, offset]
         );
 
+        // Obtener total de categorías
         const totalCategorias = await pool.query('SELECT COUNT(*) FROM categorias');
-        const totalPaginas = Math.ceil(totalCategorias.rows[0].count / limit);
+        const totalPaginas = Math.ceil(parseInt(totalCategorias.rows[0].count, 10) / limit);
 
         res.json({
             page,
             totalPaginas,
-            totalCategorias: parseInt(totalCategorias.rows[0].count, 10), // ✅ Convertir a número
-            categorias: result.rows,
+            totalCategorias: parseInt(totalCategorias.rows[0].count, 10),
+            categorias: result.rows,  // ✅ Ahora usa "categorias" en lugar de "usuarios"
         });
     } catch (error) {
         console.error('Error al obtener categorías:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
-
 
 
 
