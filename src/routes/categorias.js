@@ -146,17 +146,19 @@ router.get('/categorias', verificarToken, async (req, res) => {
     if (req.user.tipo !== 1) {
         return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden ver las categorías' });
     }
-    
-    let { page = 1, limit = 10 } = req.query;
-    page = parseInt(page);
-    limit = parseInt(limit);
-    
-    if (isNaN(page) || page < 1) page = 1;
-    if (isNaN(limit) || limit < 1) limit = 10;
+
+    let { page, limit } = req.query;
+
+    page = parseInt(page, 10) || 1;
+    limit = parseInt(limit, 10) || 10;
+
+    if (page < 1) page = 1;
+    if (limit < 1) limit = 10;
 
     const offset = (page - 1) * limit;
 
     try {
+        
         const result = await pool.query(
             'SELECT * FROM categorias ORDER BY id LIMIT $1 OFFSET $2',
             [limit, offset]
@@ -168,7 +170,7 @@ router.get('/categorias', verificarToken, async (req, res) => {
         res.json({
             page,
             totalPaginas,
-            totalCategorias: totalCategorias.rows[0].count,
+            totalCategorias: parseInt(totalCategorias.rows[0].count, 10), // ✅ Convertir a número
             categorias: result.rows,
         });
     } catch (error) {
@@ -176,6 +178,7 @@ router.get('/categorias', verificarToken, async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
+
 
 
 
