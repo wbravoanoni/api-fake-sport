@@ -137,16 +137,14 @@ router.delete('/categorias/:id', verificarToken,async (req, res) => {
 });
 
 
-// Listado de categorias
-
-// Lista de categorias con paginación (SOLO ADMIN)
+// Lista de categorías con paginación (SOLO ADMIN)
 router.get('/categorias', verificarToken, async (req, res) => {
     if (!req.user.activo) {
-        return res.status(403).json({ message: 'Acceso denegado: Categoria inactivo' });
+        return res.status(403).json({ message: 'Acceso denegado: Usuario inactivo' });
     }
 
     if (req.user.tipo !== 1) {
-        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden ver las categorias' });
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden ver las categorías' });
     }
     
     let { page = 1, limit = 10 } = req.query;
@@ -164,17 +162,17 @@ router.get('/categorias', verificarToken, async (req, res) => {
             [limit, offset]
         );
 
-        const totalUsuarios = await pool.query('SELECT COUNT(*) FROM categorias');
-        const totalPaginas = Math.ceil(totalUsuarios.rows[0].count / limit);
+        const totalCategorias = await pool.query('SELECT COUNT(*) FROM categorias');
+        const totalPaginas = Math.ceil(totalCategorias.rows[0].count / limit);
 
         res.json({
             page,
             totalPaginas,
-            totalUsuarios: totalUsuarios.rows[0].count,
-            usuarios: result.rows,
+            totalCategorias: totalCategorias.rows[0].count,
+            categorias: result.rows,
         });
     } catch (error) {
-        console.error('Error al obtener categorias:', error);
+        console.error('Error al obtener categorías:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
