@@ -6,40 +6,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const verificarToken = require('../middleware/auth');
 
-
-// Lista de categorias (PROTEGIDO)
-router.get('/categorias', verificarToken, async (req, res) => {
-    if (req.user.tipo !== 1) {
-        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden LISTAR las categorias' });
-    }
-    try {
-        const result = await pool.query('SELECT * FROM categorias'); 
-        res.json(result.rows);
-    } catch (error) {
-        console.error('Error al obtener categorias:', error);
-        res.status(500).json({ message: 'Error interno del servidor' });
-    }
-});
-
-// ver categorias (PROTEGIDO)
-router.get('/categorias/:id', verificarToken, async (req, res) => {
-    if (req.user.tipo !== 1) {
-        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden VER esta categorias' });
-    }
-
-    const { id } = req.params;
-    try {
-        const result = await pool.query('SELECT * FROM categorias WHERE id = $1', [id]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'Categoría no encontrada' });
-        }
-        res.json(result.rows[0]);
-    } catch (error) {
-        console.error('Error al obtener la categoría:', error);
-        res.status(500).json({ message: 'Error interno del servidor' });
-    }
-});
-
 // Lista de categorías con paginación (SOLO ADMIN)
 router.get('/categorias', verificarToken, async (req, res) => {
     if (!req.user.activo) {
@@ -79,6 +45,26 @@ router.get('/categorias', verificarToken, async (req, res) => {
         });
     } catch (error) {
         console.error('Error al obtener categorías:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
+
+// ver categorias (PROTEGIDO)
+router.get('/categorias/:id', verificarToken, async (req, res) => {
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden VER esta categorias' });
+    }
+
+    const { id } = req.params;
+    try {
+        const result = await pool.query('SELECT * FROM categorias WHERE id = $1', [id]);
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Categoría no encontrada' });
+        }
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error al obtener la categoría:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
