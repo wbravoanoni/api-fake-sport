@@ -21,7 +21,7 @@ router.get('/productos/:id', async (req, res) => {
             return res.status(404).json({ message: 'Producto no encontrado o inactivo' });
         }
 
-        res.json(result.rows[0]); // Devuelve el primer producto encontrado
+        res.json(result.rows[0]);
     } catch (error) {
         console.error('Error al obtener producto por ID:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
