@@ -130,14 +130,15 @@ router.get('/productos/categoria/:nombre', async (req, res) => {
     }
 });
 
-//Activar/Desactivar productos (PROTEGIDO)
 router.put('/privado/productos/:id/toggle', verificarToken, async (req, res) => {
-
     if (req.user.tipo !== 1) {
         return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden ACTIVAR/DESACTIVAR productos' });
     }
 
-    const { id } = req.params;
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+        return res.status(400).json({ message: 'ID inválido' });
+    }
 
     try {
         const result = await pool.query('SELECT activo FROM productos WHERE id = $1', [id]);
@@ -145,7 +146,9 @@ router.put('/privado/productos/:id/toggle', verificarToken, async (req, res) => 
         if (result.rows.length === 0) {
             return res.status(404).json({ message: 'Producto no encontrado' });
         }
-        const nuevoEstado = !result.rows[0].activo;
+
+        const nuevoEstado = result.rows[0].activo ? false : true;
+
         const updateResult = await pool.query(
             'UPDATE productos SET activo = $1 WHERE id = $2 RETURNING *',
             [nuevoEstado, id]
@@ -153,7 +156,7 @@ router.put('/privado/productos/:id/toggle', verificarToken, async (req, res) => 
 
         res.json({
             message: `Producto ${nuevoEstado ? 'activado' : 'desactivado'} correctamente`,
-            categoria: updateResult.rows[0]
+            producto: updateResult.rows[0]
         });
 
     } catch (error) {
@@ -161,6 +164,7 @@ router.put('/privado/productos/:id/toggle', verificarToken, async (req, res) => 
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
+
 
 
 module.exports = router;
