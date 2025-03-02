@@ -9,7 +9,7 @@ const verificarToken = require('../middleware/auth');
 
 
 // Lista de categorías con paginación (SOLO ADMIN)
-router.get('/productos', verificarToken, async (req, res) => {
+router.get('/privado/productos', verificarToken, async (req, res) => {
     if (!req.user.activo) {
         return res.status(403).json({ message: 'Acceso denegado: Usuario inactivo' });
     }
