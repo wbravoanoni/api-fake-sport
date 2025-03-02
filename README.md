@@ -116,5 +116,33 @@ https://api-fake-sport.onrender.com/api/productos/categoria/Hombre
 
 ----
 
+### Insertar Productos
+#### Metodo POST
+
+https://api-fake-sport.onrender.com/api/privado/productos
+
+<code>
+  {
+  "id_categoria": 1,
+  "nombre": "Camiseta Deportiva",
+  "descripcion": "Camiseta para entrenamiento",
+  "talla": "M",
+  "color": "Rojo",
+  "precio": 19990,
+  "cantidad": 50,
+  "descuento": 10,
+  "imagen": "url_imagen",
+  "activo": true
+}
+</code>
+
+Authorization: Bearer <token>
+
+### listar productos paginados
+#### Metodo POST
+
+https://api-fake-sport.onrender.com/api/productos?page=1&limit=1
+
+Authorization: Bearer <token>
 
 
