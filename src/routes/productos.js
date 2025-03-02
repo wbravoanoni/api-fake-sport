@@ -49,6 +49,32 @@ router.get('/privado/productos', verificarToken, async (req, res) => {
     }
 });
 
+// Crear un nuevo producto (PROTEGIDO)
+router.post('/privado/productos', verificarToken, async (req, res) => {
+    if (!req.user.activo || req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden agregar productos' });
+    }
+    
+    console.log("Token recibido:", req.headers.authorization); 
+    
+    const { id_categoria, nombre, descripcion, talla, color, precio, cantidad, descuento, imagen, activo } = req.body;
+    
+    if (!nombre || !id_categoria || !precio || !cantidad) {
+        return res.status(400).json({ message: 'Los campos nombre, id_categoria, precio y cantidad son obligatorios' });
+    }
+    
+    try {
+        const result = await pool.query(
+            'INSERT INTO productos (id_categoria, nombre, descripcion, talla, color, precio, cantidad, descuento, imagen, activo) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+            [id_categoria, nombre, descripcion, talla, color, precio, cantidad, descuento, imagen, activo]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Error al crear producto:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
 router.get('/productos', async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM productos WHERE activo = true'); // Solo productos activos
