@@ -30,7 +30,7 @@ router.get('/productos', verificarToken, async (req, res) => {
 
     try {
         const result = await pool.query(
-            'SELECT id, id_categoria,precio,cantidad,descuento, activo FROM productos ORDER BY id LIMIT $1 OFFSET $2',
+            'SELECT id, id_categoria,precio,cantidad,descuento, activo,nombre FROM productos ORDER BY id LIMIT $1 OFFSET $2',
             [limit, offset]
         );
 
