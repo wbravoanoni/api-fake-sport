@@ -121,6 +121,24 @@ router.delete('/categorias/:id', verificarToken,async (req, res) => {
     }
 });
 
+//Agregar nueva categoria (PROTEGIDO)
+router.post('/categorias', verificarToken, async (req, res) => {
 
+    if (req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden AGREGAR categorias' });
+    }
+
+    const { nombre } = req.body;
+    if (!nombre) {
+        return res.status(400).json({ message: 'El nombre es obligatorio' });
+    }
+    try {
+        const result = await pool.query('INSERT INTO categorias (nombre) VALUES ($1) RETURNING *', [nombre]);
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Error al crear categoría:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
 
 module.exports = router;
