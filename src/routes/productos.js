@@ -166,5 +166,38 @@ router.put('/privado/productos/:id/toggle', verificarToken, async (req, res) => 
 });
 
 
+router.put('/privado/productos/:id', verificarToken, async (req, res) => {
+    if (!req.user.activo || req.user.tipo !== 1) {
+        return res.status(403).json({ message: 'Acceso denegado: Solo los administradores pueden editar productos' });
+    }
+
+    const { id } = req.params;
+    const { nombre, descripcion, talla, color, precio, cantidad, descuento, imagen, activo, id_categoria } = req.body;
+
+    if (!nombre || !id_categoria || !precio || !cantidad) {
+        return res.status(400).json({ message: 'Los campos nombre, id_categoria, precio y cantidad son obligatorios' });
+    }
+
+    try {
+        const result = await pool.query(
+            'UPDATE productos SET nombre=$1, descripcion=$2, talla=$3, color=$4, precio=$5, cantidad=$6, descuento=$7, imagen=$8, activo=$9, id_categoria=$10 WHERE id=$11 RETURNING *',
+            [nombre, descripcion, talla, color, precio, cantidad, descuento, imagen, activo, id_categoria, id]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: 'Producto no encontrado' });
+        }
+
+        res.json({ message: 'Producto actualizado correctamente', producto: result.rows[0] });
+    } catch (error) {
+        console.error('Error al actualizar producto:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
+
+
+
+
 
 module.exports = router;
