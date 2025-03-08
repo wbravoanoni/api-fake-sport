@@ -7,8 +7,8 @@ const jwt = require('jsonwebtoken');
 const verificarToken = require('../middleware/auth');
 
 
-//Registrar usuarios
-router.post('/usuarios/registrar', async (req, res) => {
+//Registrar usuarios (solo administradores logeados)
+router.post('/usuarios/registrar', verificarToken, async (req, res) => {
     const { nombre, correo, contrasena } = req.body;
 
     if (!nombre || !correo || !contrasena) {
@@ -20,7 +20,7 @@ router.post('/usuarios/registrar', async (req, res) => {
         const hashedPassword = await bcrypt.hash(contrasena, salt);
 
         const result = await pool.query(
-            'INSERT INTO usuarios (nombre, correo, contrasena, activo, tipo) VALUES ($1, $2, $3, true, 2) RETURNING *',
+            'INSERT INTO usuarios (nombre, correo, contrasena, activo, tipo) VALUES ($1, $2, $3, true, 1) RETURNING *',
             [nombre, correo, hashedPassword]
         );
 

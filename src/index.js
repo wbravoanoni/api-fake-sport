@@ -3,6 +3,7 @@ const cors = require('cors');
 const usersRoutes = require('./routes/usuarios');
 const categoriasRoutes = require('./routes/categorias');
 const productosRoutes = require('./routes/productos');
+const compradoresRoutes = require('./routes/comprador');
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.use(express.json());
 app.use('/api', usersRoutes);
 app.use('/api', categoriasRoutes);
 app.use('/api', productosRoutes);
+app.use('/api', compradoresRoutes);
 
 if (require.main === module) {
     app.listen(3000, () => {
