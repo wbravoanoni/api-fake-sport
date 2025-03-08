@@ -30,3 +30,5 @@ router.post('/comprador/registrar', async (req, res) => {
         res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
+
+module.exports = router;
