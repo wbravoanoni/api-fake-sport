@@ -16,6 +16,12 @@ router.post('/usuarios/registrar', verificarToken, async (req, res) => {
     }
 
     try {
+        const emailCheck = await pool.query('SELECT * FROM usuarios WHERE correo = $1', [correo]);
+
+        if (emailCheck.rows.length > 0) {
+            return res.status(409).json({ message: 'El correo ya está registrado' });
+        }
+
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(contrasena, salt);
 
